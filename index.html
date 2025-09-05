@@ -13,10 +13,10 @@
       max-width: 600px;
       margin: auto;
     }
-    input, button {
+    input, button, label {
       font-size: 1rem;
       padding: 0.5rem;
-      margin-top: 1rem;
+      margin-top: 0.5rem;
     }
     #feedback {
       margin-top: 1rem;
@@ -26,22 +26,41 @@
 </head>
 <body>
   <h1>Periodic Table Trainer</h1>
-  <p>Welcome! Test your knowledge of element names and symbols. Website is fairly buggy, reload if the input box doesn't appear. Made by Vineet Petlur with ChatGPT-5 assistance. Please follow my GitHub at <a href="https://github.com/FractalGeometryMathematician" target="_blank">https://github.com/FractalGeometryMathematician</a>.</p>
-  
-  <label for="rounds">How many rounds?</label>
-  <input type="number" id="rounds" value="5" min="1" max="100"/>
-  <button onclick="startGame()">Start Game</button>
+  <p>
+    Welcome! Test your knowledge of element names and symbols. Website is fairly buggy, reload if the input box doesn't appear.
+    Made by Vineet Petlur with ChatGPT-5 assistance.
+    Please follow my GitHub: 
+    <a href="https://github.com/FractalGeometryMathematician" target="_blank">github.com/FractalGeometryMathematician</a>.
+  </p>
 
+  <!-- Settings Section -->
+  <div id="setup">
+    <label for="rounds">How many rounds?</label>
+    <input type="number" id="rounds" value="5" min="1" max="100" /><br/>
+
+    <label>Question Type:</label><br/>
+    <label><input type="radio" name="mode" value="both" checked /> Both</label><br/>
+    <label><input type="radio" name="mode" value="symbolToName" /> Symbol → Name</label><br/>
+    <label><input type="radio" name="mode" value="nameToSymbol" /> Name → Symbol</label><br/>
+
+    <label>Atomic Number Range:</label><br/>
+    <label>Min: <input type="number" id="minAtomic" value="1" min="0" max="118"/></label>
+    <label>Max: <input type="number" id="maxAtomic" value="118" min="1" max="118"/></label><br/>
+
+    <button id="startBtn" onclick="startGame()">Start Game</button>
+  </div>
+
+  <!-- Game UI -->
   <div id="game" style="display:none;">
     <p id="question"></p>
     <input type="text" id="answer" placeholder="Type your answer"/>
-    <button onclick="submitAnswer()">Submit</button>
+    <button id="submitBtn" onclick="submitAnswer()">Submit</button>
     <p id="feedback"></p>
     <p id="score"></p>
   </div>
 
   <script>
-    const elements = [
+    const allElements = [
       { num: 0, mass: 0, name: "PLACEHOLDER", symbol: "PH" },
       { num: 1, mass: 1.008, name: "HYDROGEN", symbol: "H" },
       { num: 2, mass: 4.00, name: "HELIUM", symbol: "He" },
@@ -99,48 +118,72 @@
       { num: 118, mass: 294, name: "OGANESSON", symbol: "Og" }
     ];
 
+    let elements = [];
     let currentElement = null;
     let isAskingSymbol = false;
     let totalRounds = 5;
     let currentRound = 0;
     let correct = 0;
     let wrong = 0;
+    let selectedMode = "both";
 
     function startGame() {
+      // Get settings
       totalRounds = parseInt(document.getElementById("rounds").value) || 5;
+      const minAtomic = parseInt(document.getElementById("minAtomic").value) || 1;
+      const maxAtomic = parseInt(document.getElementById("maxAtomic").value) || 118;
+      selectedMode = document.querySelector('input[name="mode"]:checked').value;
+
+      // Filter elements by atomic number
+      elements = allElements.filter(e => e.num >= minAtomic && e.num <= maxAtomic);
+
+      if (elements.length === 0) {
+        alert("No elements in this range!");
+        return;
+      }
+
       currentRound = 0;
       correct = 0;
       wrong = 0;
+
       document.getElementById("game").style.display = "block";
+      document.getElementById("submitBtn").style.display = "inline";
+      document.getElementById("answer").style.display = "inline";
+      document.getElementById("feedback").textContent = "";
+      document.getElementById("startBtn").textContent = "Start Again";
+
       nextQuestion();
     }
 
     function nextQuestion() {
       if (currentRound >= totalRounds) {
         document.getElementById("question").innerHTML = "Game over!";
-        document.getElementById("feedback").textContent = `You got ${correct} right and ${wrong} wrong.`;
+        document.getElementById("feedback").textContent = `✅ You got ${correct} right and ❌ ${wrong} wrong.`;
+        document.getElementById("submitBtn").style.display = "none";
         document.getElementById("answer").style.display = "none";
         return;
       }
 
       currentElement = elements[Math.floor(Math.random() * elements.length)];
-      isAskingSymbol = Math.random() < 0.5;
 
-      if (isAskingSymbol) {
-        document.getElementById("question").innerHTML = `What is the <strong>symbol</strong> for ${currentElement.name}?`;
+      if (selectedMode === "both") {
+        isAskingSymbol = Math.random() < 0.5;
       } else {
-        document.getElementById("question").innerHTML = `What is the <strong>name</strong> for symbol ${currentElement.symbol}?`;
+        isAskingSymbol = selectedMode === "nameToSymbol" ? false : true;
       }
 
+      const qText = isAskingSymbol
+        ? `What is the <strong>symbol</strong> for ${currentElement.name}?`
+        : `What is the <strong>name</strong> for symbol ${currentElement.symbol}?`;
+
+      document.getElementById("question").innerHTML = qText;
       document.getElementById("answer").value = "";
-      document.getElementById("answer").style.display = "inline";
-      document.getElementById("feedback").textContent = "";
       updateScore();
     }
 
     function submitAnswer() {
       const answer = document.getElementById("answer").value.trim();
-      let correctAnswer = isAskingSymbol ? currentElement.symbol : currentElement.name;
+      const correctAnswer = isAskingSymbol ? currentElement.symbol : currentElement.name;
 
       if (answer.toLowerCase() === correctAnswer.toLowerCase()) {
         document.getElementById("feedback").textContent = "✅ Correct!";
@@ -151,7 +194,7 @@
       }
 
       currentRound++;
-      setTimeout(nextQuestion, 1000); // short delay before next question
+      setTimeout(nextQuestion, 1000);
     }
 
     function updateScore() {
