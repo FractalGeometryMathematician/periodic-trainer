@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Periodic Table Trainer</title>
   <style>
     body {
@@ -13,7 +13,7 @@
       max-width: 600px;
       margin: auto;
     }
-    input, button, label {
+    input, button {
       font-size: 1rem;
       padding: 0.5rem;
       margin-top: 0.5rem;
@@ -22,46 +22,52 @@
       margin-top: 1rem;
       font-weight: bold;
     }
+    fieldset {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      background: #fff;
+    }
   </style>
 </head>
 <body>
   <h1>Periodic Table Trainer</h1>
   <p>
-    Welcome! Test your knowledge of element names and symbols. Website is fairly buggy, reload if the input box doesn't appear.
-    Made by Vineet Petlur with ChatGPT-5 assistance.
-    Please follow my GitHub: 
-    <a href="https://github.com/FractalGeometryMathematician" target="_blank">github.com/FractalGeometryMathematician</a>.
+    Welcome! Test your knowledge of element names and symbols. Website is fairly buggy, reload if the input box doesn't appear. Made by Vineet Petlur with ChatGPT-5 assistance. Please follow my GitHub at
+    <a href="https://github.com/FractalGeometryMathematician" target="_blank" rel="noopener">https://github.com/FractalGeometryMathematician</a>.
   </p>
 
-  <!-- Settings Section -->
-  <div id="setup">
-    <label for="rounds">How many rounds?</label>
-    <input type="number" id="rounds" value="5" min="1" max="100" /><br/>
+  <!-- Flexible setup -->
+  <form id="settingsForm">
+    <fieldset>
+      <legend>Choose quiz mode:</legend>
+      <label><input type="radio" name="mode" value="both" checked> Both (Name & Symbol)</label><br />
+      <label><input type="radio" name="mode" value="nameToSymbol"> Full Name → Symbol</label><br />
+      <label><input type="radio" name="mode" value="symbolToName"> Symbol → Full Name</label>
+    </fieldset>
 
-    <label>Question Type:</label><br/>
-    <label><input type="radio" name="mode" value="both" checked /> Both</label><br/>
-    <label><input type="radio" name="mode" value="symbolToName" /> Symbol → Name</label><br/>
-    <label><input type="radio" name="mode" value="nameToSymbol" /> Name → Symbol</label><br/>
+    <fieldset>
+      <legend>Filter by atomic number range:</legend>
+      <label>Min atomic number: <input type="number" id="minAtomic" value="1" min="1" max="118" /></label><br />
+      <label>Max atomic number: <input type="number" id="maxAtomic" value="20" min="1" max="118" /></label>
+    </fieldset>
+  </form>
 
-    <label>Atomic Number Range:</label><br/>
-    <label>Min: <input type="number" id="minAtomic" value="1" min="0" max="118"/></label>
-    <label>Max: <input type="number" id="maxAtomic" value="118" min="1" max="118"/></label><br/>
+  <label for="rounds">How many rounds?</label>
+  <input type="number" id="rounds" value="5" min="1" max="100" />
+  <button id="startBtn" onclick="startGame()">Start Game</button>
 
-    <button id="startBtn" onclick="startGame()">Start Game</button>
-  </div>
-
-  <!-- Game UI -->
   <div id="game" style="display:none;">
     <p id="question"></p>
-    <input type="text" id="answer" placeholder="Type your answer"/>
+    <input type="text" id="answer" placeholder="Type your answer" />
     <button id="submitBtn" onclick="submitAnswer()">Submit</button>
     <p id="feedback"></p>
     <p id="score"></p>
   </div>
 
   <script>
-    const allElements = [
-      { num: 0, mass: 0, name: "PLACEHOLDER", symbol: "PH" },
+    const elements = [
       { num: 1, mass: 1.008, name: "HYDROGEN", symbol: "H" },
       { num: 2, mass: 4.00, name: "HELIUM", symbol: "He" },
       { num: 3, mass: 6.94, name: "LITHIUM", symbol: "Li" },
@@ -81,109 +87,111 @@
       { num: 17, mass: 35.45, name: "CHLORINE", symbol: "Cl" },
       { num: 18, mass: 39.9, name: "ARGON", symbol: "Ar" },
       { num: 19, mass: 39.10, name: "POTASSIUM", symbol: "K" },
-      { num: 20, mass: 40.08, name: "CALCIUM", symbol: "Ca" },
-      { num: 21, mass: 44.96, name: "SCANDIUM", symbol: "Sc" },
-      { num: 22, mass: 47.87, name: "TITANIUM", symbol: "Ti" },
-      { num: 23, mass: 50.94, name: "VANADIUM", symbol: "V" },
-      { num: 24, mass: 52.00, name: "CHROMIUM", symbol: "Cr" },
-      { num: 25, mass: 54.94, name: "MANGANESE", symbol: "Mn" },
-      { num: 26, mass: 55.85, name: "IRON", symbol: "Fe" },
-      { num: 27, mass: 58.93, name: "COBALT", symbol: "Co" },
-      { num: 28, mass: 58.69, name: "NICKEL", symbol: "Ni" },
-      { num: 29, mass: 63.55, name: "COPPER", symbol: "Cu" },
-      { num: 30, mass: 65.39, name: "ZINC", symbol: "Zn" },
-      { num: 31, mass: 69.72, name: "GALLIUM", symbol: "Ga" },
-      { num: 32, mass: 72.61, name: "My favorite; GERMANIUM", symbol: "Ge" },
-      { num: 33, mass: 74.92, name: "ARSENIC", symbol: "As" },
-      { num: 34, mass: 78.96, name: "SELENIUM", symbol: "Se" },
-      { num: 35, mass: 79.90, name: "BROMINE", symbol: "Br" },
-      { num: 36, mass: 83.80, name: "KRYPTON", symbol: "Kr" },
-      { num: 37, mass: 85.47, name: "RUBIDIUM", symbol: "Rb" },
-      { num: 38, mass: 87.62, name: "STRONTIUM", symbol: "Sr" },
-      { num: 47, mass: 107.87, name: "SILVER", symbol: "Ag" },
-      { num: 50, mass: 118.71, name: "TIN", symbol: "Sn" },
-      { num: 53, mass: 126.90, name: "IODINE", symbol: "I" },
-      { num: 54, mass: 131.29, name: "XENON", symbol: "Xe" },
-      { num: 55, mass: 132.91, name: "CAESIUM", symbol: "Cs" },
-      { num: 56, mass: 137.323, name: "BARIUM", symbol: "Ba" },
-      { num: 78, mass: 195.08, name: "PLATINUM", symbol: "Pt" },
-      { num: 79, mass: 196.67, name: "GOLD", symbol: "Au" },
-      { num: 80, mass: 200.59, name: "MERCURY", symbol: "Hg" },
-      { num: 82, mass: 207.2, name: "LEAD", symbol: "Pb" },
-      { num: 86, mass: 222, name: "RADON", symbol: "Rn" },
-      { num: 87, mass: 223, name: "FRANCIUM", symbol: "Fr" },
-      { num: 88, mass: 226, name: "RADIUM", symbol: "Ra" },
-      { num: 92, mass: 238.03, name: "URANIUM", symbol: "U" },
-      { num: 94, mass: 244, name: "PLUTONIUM", symbol: "Pu" },
-      { num: 118, mass: 294, name: "OGANESSON", symbol: "Og" }
+      { num: 20, mass: 40.08, name: "CALCIUM", symbol: "Ca" }
+      // Add more elements as needed
     ];
 
-    let elements = [];
+    let filteredElements = [];
     let currentElement = null;
-    let isAskingSymbol = false;
+    let currentMode = "both"; // both, nameToSymbol, symbolToName
     let totalRounds = 5;
     let currentRound = 0;
     let correct = 0;
     let wrong = 0;
-    let selectedMode = "both";
+    let isAskingSymbol = false;
 
     function startGame() {
-      // Get settings
-      totalRounds = parseInt(document.getElementById("rounds").value) || 5;
+      // Read mode from radio buttons
+      const modeRadios = document.getElementsByName("mode");
+      for (const radio of modeRadios) {
+        if (radio.checked) {
+          currentMode = radio.value;
+          break;
+        }
+      }
+
+      // Get atomic number filter values
       const minAtomic = parseInt(document.getElementById("minAtomic").value) || 1;
       const maxAtomic = parseInt(document.getElementById("maxAtomic").value) || 118;
-      selectedMode = document.querySelector('input[name="mode"]:checked').value;
 
-      // Filter elements by atomic number
-      elements = allElements.filter(e => e.num >= minAtomic && e.num <= maxAtomic);
-
-      if (elements.length === 0) {
-        alert("No elements in this range!");
+      // Filter elements by atomic number range
+      filteredElements = elements.filter(el => el.num >= minAtomic && el.num <= maxAtomic);
+      if (filteredElements.length === 0) {
+        alert("No elements found in that atomic number range.");
         return;
       }
 
+      // Set rounds
+      totalRounds = parseInt(document.getElementById("rounds").value) || 5;
       currentRound = 0;
       correct = 0;
       wrong = 0;
 
+      // Hide settings form and start button, show game div
+      document.getElementById("settingsForm").style.display = "none";
+      document.getElementById("rounds").style.display = "none";
+      const startBtn = document.getElementById("startBtn");
+      startBtn.style.display = "none";
+
       document.getElementById("game").style.display = "block";
-      document.getElementById("submitBtn").style.display = "inline";
-      document.getElementById("answer").style.display = "inline";
-      document.getElementById("feedback").textContent = "";
-      document.getElementById("startBtn").textContent = "Start Again";
 
       nextQuestion();
     }
 
     function nextQuestion() {
       if (currentRound >= totalRounds) {
-        document.getElementById("question").innerHTML = "Game over!";
-        document.getElementById("feedback").textContent = `✅ You got ${correct} right and ❌ ${wrong} wrong.`;
-        document.getElementById("submitBtn").style.display = "none";
+        // End of game
+        document.getElementById("question").textContent = "Game over!";
+        document.getElementById("feedback").textContent = `You got ${correct} right and ${wrong} wrong.`;
+
+        // Hide answer input and submit button
         document.getElementById("answer").style.display = "none";
+        document.getElementById("submitBtn").style.display = "none";
+
+        // Show start again button
+        const startBtn = document.getElementById("startBtn");
+        startBtn.textContent = "Start Again";
+        startBtn.style.display = "inline-block";
+
+        // Show settings and rounds input again
+        document.getElementById("settingsForm").style.display = "block";
+        document.getElementById("rounds").style.display = "inline-block";
+
         return;
       }
 
-      currentElement = elements[Math.floor(Math.random() * elements.length)];
+      // Pick a random element from filtered list
+      currentElement = filteredElements[Math.floor(Math.random() * filteredElements.length)];
 
-      if (selectedMode === "both") {
+      // Decide question type based on mode
+      if (currentMode === "both") {
         isAskingSymbol = Math.random() < 0.5;
+      } else if (currentMode === "nameToSymbol") {
+        isAskingSymbol = true;
       } else {
-        isAskingSymbol = selectedMode === "nameToSymbol" ? false : true;
+        // symbolToName
+        isAskingSymbol = false;
       }
 
-      const qText = isAskingSymbol
-        ? `What is the <strong>symbol</strong> for ${currentElement.name}?`
-        : `What is the <strong>name</strong> for symbol ${currentElement.symbol}?`;
+      if (isAskingSymbol) {
+        document.getElementById("question").innerHTML = `What is the <strong>symbol</strong> for ${currentElement.name}?`;
+      } else {
+        document.getElementById("question").innerHTML = `What is the <strong>name</strong> for symbol ${currentElement.symbol}?`;
+      }
 
-      document.getElementById("question").innerHTML = qText;
-      document.getElementById("answer").value = "";
+      // Reset input and feedback
+      const answerInput = document.getElementById("answer");
+      answerInput.style.display = "inline-block";
+      answerInput.value = "";
+      answerInput.focus();
+      document.getElementById("feedback").textContent = "";
+
       updateScore();
     }
 
     function submitAnswer() {
       const answer = document.getElementById("answer").value.trim();
-      const correctAnswer = isAskingSymbol ? currentElement.symbol : currentElement.name;
+      let correctAnswer = isAskingSymbol ? currentElement.symbol : currentElement.name;
 
       if (answer.toLowerCase() === correctAnswer.toLowerCase()) {
         document.getElementById("feedback").textContent = "✅ Correct!";
@@ -194,6 +202,9 @@
       }
 
       currentRound++;
+      updateScore();
+
+      // Wait a moment, then next question
       setTimeout(nextQuestion, 1000);
     }
 
