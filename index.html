@@ -7,97 +7,137 @@
 
 <style>
 :root {
-  --bg: #0f172a;
-  --card: #111827;
-  --accent: #6366f1;
-  --text: #e5e7eb;
-  --muted: #9ca3af;
+  --bg1:#050816;
+  --bg2:#0b1224;
+  --card:#0f172a;
+  --accent:#6366f1;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --border:rgba(255,255,255,0.08);
 }
 
-body {
-  margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
-  background: linear-gradient(160deg,#020617,#0f172a);
-  color: var(--text);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  padding: 1rem;
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background: radial-gradient(1200px 600px at 50% -10%, #1e293b55, transparent),
+              linear-gradient(180deg,var(--bg1),var(--bg2));
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
 }
 
-.container {
-  width: 100%;
-  max-width: 420px;
-  background: var(--card);
-  border-radius: 20px;
-  padding: 1.5rem;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+.container{
+  width:100%;
+  max-width:460px;
+  background:rgba(15,23,42,0.85);
+  border:1px solid var(--border);
+  backdrop-filter: blur(10px);
+  border-radius:18px;
+  padding:22px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.45);
 }
 
-h1 {
-  text-align: center;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+h1{
+  font-size:20px;
+  font-weight:600;
+  margin:0 0 18px 0;
+  letter-spacing:0.3px;
+  text-align:center;
 }
 
-input, button {
-  width: 100%;
-  padding: 0.8rem;
-  margin-top: 0.6rem;
-  border-radius: 12px;
-  border: none;
-  font-size: 1rem;
+label{
+  font-size:12px;
+  color:var(--muted);
+  display:block;
+  margin-top:12px;
+  margin-bottom:6px;
 }
 
-input {
-  background: #020617;
-  color: white;
-  border: 1px solid #1f2937;
+select,input{
+  width:100%;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#0b1224;
+  color:var(--text);
+  outline:none;
 }
 
-button {
-  background: var(--accent);
-  color: white;
-  font-weight: bold;
+.rangeRow{
+  display:flex;
+  gap:10px;
 }
 
-button:active {
-  transform: scale(0.98);
+button{
+  width:100%;
+  margin-top:14px;
+  padding:11px;
+  border:none;
+  border-radius:12px;
+  background:var(--accent);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.15s;
 }
 
-#question {
-  font-size: 1.2rem;
-  text-align: center;
-  margin: 1rem 0;
+button:hover{transform:translateY(-1px)}
+button:active{transform:translateY(0px)}
+
+#game{
+  display:none;
+  text-align:center;
 }
 
-#feedback {
-  text-align: center;
-  font-weight: bold;
-  min-height: 1.5rem;
+#question{
+  font-size:18px;
+  margin:18px 0;
+  line-height:1.4;
 }
 
-#score {
-  text-align: center;
-  font-size: 0.9rem;
-  color: var(--muted);
+#answer{
+  margin-top:10px;
 }
 
-.hidden { display:none }
+#feedback{
+  margin-top:12px;
+  min-height:20px;
+  color:var(--muted);
+  font-weight:500;
+}
 
-@media (max-width: 500px) {
-  .container { padding: 1rem; }
-  h1 { font-size: 1.3rem; }
+#score{
+  margin-top:10px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+#replayBtn{
+  background:#1f2937;
+  margin-top:14px;
+}
+
+.hidden{display:none}
+
+@media(max-width:500px){
+  .container{padding:16px}
+  #question{font-size:16px}
 }
 </style>
 </head>
 
 <body>
+
 <div class="container">
-  <h1>⚛️ Trainer Pro</h1>
+  <h1>Periodic Trainer Pro</h1>
 
   <div id="settings">
+
     <label>Mode</label>
     <select id="mode">
       <option value="both">Mixed</option>
@@ -105,120 +145,102 @@ button:active {
       <option value="symbolToName">Symbol → Name</option>
     </select>
 
+    <label>Element Range</label>
+    <div class="rangeRow">
+      <input id="minAtomic" type="number" placeholder="Min (1)" value="1" min="1" max="118">
+      <input id="maxAtomic" type="number" placeholder="Max (118)" value="20" min="1" max="118">
+    </div>
+
     <label>Rounds</label>
-    <input type="number" id="rounds" value="10">
+    <input id="rounds" type="number" value="10" min="1" max="200">
 
     <button onclick="startGame()">Start</button>
   </div>
 
-  <div id="game" class="hidden">
+  <div id="game">
     <div id="question"></div>
-    <input id="answer" placeholder="Answer">
+    <input id="answer" type="text" placeholder="Type answer" />
     <button onclick="submitAnswer()">Submit</button>
+
     <div id="feedback"></div>
     <div id="score"></div>
-    <button id="replayBtn" class="hidden" onclick="replayMissed()">Replay Missed Only</button>
+
+    <button id="replayBtn" class="hidden" onclick="replayMissed()">Replay missed only</button>
   </div>
 </div>
 
 <script>
-const elements = [...Array(118)].map((_,i)=>i+1).map(n=>{
-  const names=["HYDROGEN","HELIUM","LITHIUM","BERYLLIUM","BORON","CARBON","NITROGEN","OXYGEN","FLUORINE","NEON","SODIUM","MAGNESIUM","ALUMINUM","SILICON","PHOSPHORUS","SULFUR","CHLORINE","ARGON","POTASSIUM","CALCIUM","SCANDIUM","TITANIUM","VANADIUM","CHROMIUM","MANGANESE","IRON","COBALT","NICKEL","COPPER","ZINC","GALLIUM","GERMANIUM","ARSENIC","SELENIUM","BROMINE","KRYPTON","RUBIDIUM","STRONTIUM","YTTRIUM","ZIRCONIUM","NIOBIUM","MOLYBDENUM","TECHNETIUM","RUTHENIUM","RHODIUM","PALLADIUM","SILVER","CADMIUM","INDIUM","TIN","ANTIMONY","TELLURIUM","IODINE","XENON","CESIUM","BARIUM","LANTHANUM","CERIUM","PRASEODYMIUM","NEODYMIUM","PROMETHIUM","SAMARIUM","EUROPIUM","GADOLINIUM","TERBIUM","DYSPROSIUM","HOLMIUM","ERBIUM","THULIUM","YTTERBIUM","LUTETIUM","HAFNIUM","TANTALUM","TUNGSTEN","RHENIUM","OSMIUM","IRIDIUM","PLATINUM","GOLD","MERCURY","THALLIUM","LEAD","BISMUTH","POLONIUM","ASTATINE","RADON","FRANCIUM","RADIUM","ACTINIUM","THORIUM","PROTACTINIUM","URANIUM","NEPTUNIUM","PLUTONIUM","AMERICIUM","CURIUM","BERKELIUM","CALIFORNIUM","EINSTEINIUM","FERMIUM","MENDELEVIUM","NOBELIUM","LAWRENCIUM","RUTHERFORDIUM","DUBNIUM","SEABORGIUM","BOHRIUM","HASSIUM","MEITNERIUM","DARMSTADTIUM","ROENTGENIUM","COPERNICIUM","NIHONIUM","FLEROVIUM","MOSCOVIUM","LIVERMORIUM","TENNESSINE","OGANESSON"];
-  const symbols=["H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg","Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Ge","As","Se","Br","Kr","Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","In","Sn","Sb","Te","I","Xe","Cs","Ba","La","Ce","Pr","Nd","Pm","Sm","Eu","Gd","Tb","Dy","Ho","Er","Tm","Yb","Lu","Hf","Ta","W","Re","Os","Ir","Pt","Au","Hg","Tl","Pb","Bi","Po","At","Rn","Fr","Ra","Ac","Th","Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm","Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt","Ds","Rg","Cn","Nh","Fl","Mc","Lv","Ts","Og"];
-  return {num:n,name:names[n-1],symbol:symbols[n-1]};
+const elements=[...Array(118)].map((_,i)=>i+1).map(n=>{
+const names=["HYDROGEN","HELIUM","LITHIUM","BERYLLIUM","BORON","CARBON","NITROGEN","OXYGEN","FLUORINE","NEON","SODIUM","MAGNESIUM","ALUMINUM","SILICON","PHOSPHORUS","SULFUR","CHLORINE","ARGON","POTASSIUM","CALCIUM","SCANDIUM","TITANIUM","VANADIUM","CHROMIUM","MANGANESE","IRON","COBALT","NICKEL","COPPER","ZINC","GALLIUM","GERMANIUM","ARSENIC","SELENIUM","BROMINE","KRYPTON","RUBIDIUM","STRONTIUM","YTTRIUM","ZIRCONIUM","NIOBIUM","MOLYBDENUM","TECHNETIUM","RUTHENIUM","RHODIUM","PALLADIUM","SILVER","CADMIUM","INDIUM","TIN","ANTIMONY","TELLURIUM","IODINE","XENON","CESIUM","BARIUM","LANTHANUM","CERIUM","PRASEODYMIUM","NEODYMIUM","PROMETHIUM","SAMARIUM","EUROPIUM","GADOLINIUM","TERBIUM","DYSPROSIUM","HOLMIUM","ERBIUM","THULIUM","YTTERBIUM","LUTETIUM","HAFNIUM","TANTALUM","TUNGSTEN","RHENIUM","OSMIUM","IRIDIUM","PLATINUM","GOLD","MERCURY","THALLIUM","LEAD","BISMUTH","POLONIUM","ASTATINE","RADON","FRANCIUM","RADIUM","ACTINIUM","THORIUM","PROTACTINIUM","URANIUM","NEPTUNIUM","PLUTONIUM","AMERICIUM","CURIUM","BERKELIUM","CALIFORNIUM","EINSTEINIUM","FERMIUM","MENDELEVIUM","NOBELIUM","LAWRENCIUM","RUTHERFORDIUM","DUBNIUM","SEABORGIUM","BOHRIUM","HASSIUM","MEITNERIUM","DARMSTADTIUM","ROENTGENIUM","COPERNICIUM","NIHONIUM","FLEROVIUM","MOSCOVIUM","LIVERMORIUM","TENNESSINE","OGANESSON"];
+const symbols=["H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg","Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Ge","As","Se","Br","Kr","Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","In","Sn","Sb","Te","I","Xe","Cs","Ba","La","Ce","Pr","Nd","Pm","Sm","Eu","Gd","Tb","Dy","Ho","Er","Tm","Yb","Lu","Hf","Ta","W","Re","Os","Ir","Pt","Au","Hg","Tl","Pb","Bi","Po","At","Rn","Fr","Ra","Ac","Th","Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm","Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt","Ds","Rg","Cn","Nh","Fl","Mc","Lv","Ts","Og"];
+return{num:n,name:names[n-1],symbol:symbols[n-1]};
 });
 
 let deck=[],queue=[],missed=[],current,mode,round=0,total=10,correct=0;
 
-function schedule(element,success){
-  const delay = success ? 3 : 1;
-  queue.push({element,due:round+delay});
-}
+function schedule(el,ok){queue.push({element:el,due:round+(ok?3:1)})}
 
 function pick(){
-  const due = queue.filter(c=>c.due<=round);
-  if(due.length){
-    const c = due.shift();
-    queue = queue.filter(x=>x!==c);
-    return c.element;
-  }
-  return deck[Math.floor(Math.random()*deck.length)];
+const due=queue.filter(c=>c.due<=round);
+if(due.length){const c=due.shift();queue=queue.filter(x=>x!==c);return c.element;}
+return deck[Math.floor(Math.random()*deck.length)];
 }
 
-function startGame(customDeck){
-  mode = document.getElementById('mode').value;
-  total = +document.getElementById('rounds').value;
+function startGame(custom){
+mode=document.getElementById('mode').value;
+const min=+document.getElementById('minAtomic').value;
+const max=+document.getElementById('maxAtomic').value;
 
-  deck = customDeck || [...elements];
-  queue=[];
-  missed=[];
-  round=0; correct=0;
+deck=(custom||elements).filter(e=>e.num>=min&&e.num<=max);
 
-  document.getElementById('replayBtn').classList.add('hidden');
+queue=[];missed=[];round=0;correct=0;
+total=+document.getElementById('rounds').value;
 
-  document.getElementById('settings').classList.add('hidden');
-  document.getElementById('game').classList.remove('hidden');
+if(!deck.length)return alert("No elements in range");
 
-  next();
+document.getElementById('settings').style.display='none';
+document.getElementById('game').style.display='block';
+document.getElementById('replayBtn').classList.add('hidden');
+next();
 }
 
 function next(){
-  if(round>=total){
-    document.getElementById('question').textContent="Done";
-    document.getElementById('feedback').textContent=`Score ${correct}/${total}`;
-
-    if(missed.length){
-      document.getElementById('replayBtn').classList.remove('hidden');
-    }
-    return;
-  }
-
-  current = pick();
-  const askSymbol = mode==='both'?Math.random()<0.5:mode==='nameToSymbol';
-  current.askSymbol = askSymbol;
-
-  document.getElementById('question').textContent = askSymbol
-    ? `Symbol for ${current.name}?`
-    : `Name for ${current.symbol}?`;
-
-  document.getElementById('answer').value='';
-  document.getElementById('answer').focus();
-  document.getElementById('feedback').textContent='';
-  updateScore();
+if(round>=total){
+document.getElementById('question').textContent="Complete";
+document.getElementById('feedback').textContent=`Score ${correct}/${total}`;
+if(missed.length)document.getElementById('replayBtn').classList.remove('hidden');
+return;
 }
 
-function submitAnswer(){
-  const val = document.getElementById('answer').value.trim().toLowerCase();
-  const correctAns = current.askSymbol ? current.symbol.toLowerCase() : current.name.toLowerCase();
+current=pick();
+const ask=mode==='both'?Math.random()<0.5:mode==='nameToSymbol';
+current.ask=ask;
 
-  const isCorrect = val===correctAns;
-
-  if(isCorrect){
-    correct++;
-    document.getElementById('feedback').textContent='✅';
-  } else {
-    document.getElementById('feedback').textContent=`❌ ${correctAns}`;
-    missed.push(current);
-  }
-
-  schedule(current,isCorrect);
-  round++;
-  updateScore();
-  setTimeout(next,600);
+document.getElementById('question').textContent=ask?`Symbol for ${current.name}?`:`Name for ${current.symbol}?`;
+document.getElementById('answer').value='';
+document.getElementById('answer').focus();
+document.getElementById('feedback').textContent='';
+update();
 }
 
-function replayMissed(){
-  startGame(missed);
+function submit(){
+const v=document.getElementById('answer').value.trim().toLowerCase();
+const a=current.ask?current.symbol.toLowerCase():current.name.toLowerCase();
+const ok=v===a;
+if(ok)correct++;else missed.push(current);
+document.getElementById('feedback').textContent=ok?'Correct':'Answer: '+a;
+schedule(current,ok);
+round++;update();setTimeout(next,600);
 }
 
-function updateScore(){
-  document.getElementById('score').textContent=`${round+1}/${total} • ${correct} correct`;
+function replayMissed(){startGame(missed)}
+
+function update(){
+document.getElementById('score').textContent=`${round+1}/${total} • ${correct} correct`;
 }
 
-// Enter key support
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter') submitAnswer();
-});
+document.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
 </script>
+
 </body>
 </html>
