@@ -1,81 +1,253 @@
-<script>
-const elements=[...Array(118)].map((_,i)=>i+1).map(n=>{
-const names=["HYDROGEN","HELIUM","LITHIUM","BERYLLIUM","BORON","CARBON","NITROGEN","OXYGEN","FLUORINE","NEON","SODIUM","MAGNESIUM","ALUMINUM","SILICON","PHOSPHORUS","SULFUR","CHLORINE","ARGON","POTASSIUM","CALCIUM","SCANDIUM","TITANIUM","VANADIUM","CHROMIUM","MANGANESE","IRON","COBALT","NICKEL","COPPER","ZINC","GALLIUM","GERMANIUM","ARSENIC","SELENIUM","BROMINE","KRYPTON","RUBIDIUM","STRONTIUM","YTTRIUM","ZIRCONIUM","NIOBIUM","MOLYBDENUM","TECHNETIUM","RUTHENIUM","RHODIUM","PALLADIUM","SILVER","CADMIUM","INDIUM","TIN","ANTIMONY","TELLURIUM","IODINE","XENON","CESIUM","BARIUM","LANTHANUM","CERIUM","PRASEODYMIUM","NEODYMIUM","PROMETHIUM","SAMARIUM","EUROPIUM","GADOLINIUM","TERBIUM","DYSPROSIUM","HOLMIUM","ERBIUM","THULIUM","YTTERBIUM","LUTETIUM","HAFNIUM","TANTALUM","TUNGSTEN","RHENIUM","OSMIUM","IRIDIUM","PLATINUM","GOLD","MERCURY","THALLIUM","LEAD","BISMUTH","POLONIUM","ASTATINE","RADON","FRANCIUM","RADIUM","ACTINIUM","THORIUM","PROTACTINIUM","URANIUM","NEPTUNIUM","PLUTONIUM","AMERICIUM","CURIUM","BERKELIUM","CALIFORNIUM","EINSTEINIUM","FERMIUM","MENDELEVIUM","NOBELIUM","LAWRENCIUM","RUTHERFORDIUM","DUBNIUM","SEABORGIUM","BOHRIUM","HASSIUM","MEITNERIUM","DARMSTADTIUM","ROENTGENIUM","COPERNICIUM","NIHONIUM","FLEROVIUM","MOSCOVIUM","LIVERMORIUM","TENNESSINE","OGANESSON"];
-const symbols=["H","He","Li","Be","B","C","N","O","F","Ne","Na","Mg","Al","Si","P","S","Cl","Ar","K","Ca","Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn","Ga","Ge","As","Se","Br","Kr","Rb","Sr","Y","Zr","Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","In","Sn","Sb","Te","I","Xe","Cs","Ba","La","Ce","Pr","Nd","Pm","Sm","Eu","Gd","Tb","Dy","Ho","Er","Tm","Yb","Lu","Hf","Ta","W","Re","Os","Ir","Pt","Au","Hg","Tl","Pb","Bi","Po","At","Rn","Fr","Ra","Ac","Th","Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm","Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt","Ds","Rg","Cn","Nh","Fl","Mc","Lv","Ts","Og"];
-return{num:n,name:names[n-1],symbol:symbols[n-1]};
-});
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Periodic Trainer Pro</title>
 
-let deck=[],queue=[],missed=[],current,mode,round=0,total=10,correct=0;
+<style>
+:root {
+  --bg1:#050816;
+  --bg2:#0b1224;
+  --card:#0f172a;
+  --accent:#6366f1;
+  --text:#e5e7eb;
+  --muted:#94a3b8;
+  --border:rgba(255,255,255,0.08);
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  background: radial-gradient(1200px 600px at 50% -10%, #1e293b55, transparent),
+              linear-gradient(180deg,var(--bg1),var(--bg2));
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:16px;
+}
+
+.container{
+  width:100%;
+  max-width:460px;
+  background:rgba(15,23,42,0.85);
+  border:1px solid var(--border);
+  backdrop-filter: blur(10px);
+  border-radius:18px;
+  padding:22px;
+}
+
+h1{
+  font-size:20px;
+  text-align:center;
+  margin-bottom:18px;
+}
+
+label{font-size:12px;color:var(--muted);display:block;margin-top:12px;margin-bottom:6px}
+
+input,select{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--border);
+  background:#0b1224;
+  color:var(--text);
+}
+
+button{
+  width:100%;
+  margin-top:14px;
+  padding:11px;
+  border:none;
+  border-radius:12px;
+  background:var(--accent);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+}
+
+button:hover{transform:translateY(-1px)}
+button:active{transform:translateY(0)}
+
+#game{display:none;text-align:center}
+
+#question{font-size:18px;margin:18px 0}
+
+#feedback{margin-top:10px;color:var(--muted);min-height:20px}
+
+#score{margin-top:10px;font-size:12px;color:var(--muted)}
+
+#replayBtn{background:#1f2937}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>Periodic Trainer Pro</h1>
+
+  <div id="settings">
+    <label>Mode</label>
+    <select id="mode">
+      <option value="both">Mixed</option>
+      <option value="nameToSymbol">Name → Symbol</option>
+      <option value="symbolToName">Symbol → Name</option>
+    </select>
+
+    <label>Range</label>
+    <input id="minAtomic" type="number" value="1" min="1" max="118">
+    <input id="maxAtomic" type="number" value="20" min="1" max="118">
+
+    <label>Rounds</label>
+    <input id="rounds" type="number" value="10" min="1" max="200">
+
+    <button onclick="startGame()">Start</button>
+  </div>
+
+  <div id="game">
+    <div id="question"></div>
+    <input id="answer" type="text" placeholder="Type answer" />
+    <button onclick="submitAnswer()">Submit</button>
+
+    <div id="feedback"></div>
+    <div id="score"></div>
+
+    <button id="replayBtn" onclick="replayMissed()" style="display:none;background:#1f2937">
+      Replay missed only
+    </button>
+  </div>
+</div>
+
+<script>
+console.log("JS loaded");
+
+// SAFE DATA BUILD (prevents mismatch crashes)
+const names = [
+"HYDROGEN","HELIUM","LITHIUM","BERYLLIUM","BORON","CARBON","NITROGEN","OXYGEN","FLUORINE","NEON",
+"SODIUM","MAGNESIUM","ALUMINUM","SILICON","PHOSPHORUS","SULFUR","CHLORINE","ARGON","POTASSIUM","CALCIUM",
+"SCANDIUM","TITANIUM","VANADIUM","CHROMIUM","MANGANESE","IRON","COBALT","NICKEL","COPPER","ZINC",
+"GALLIUM","GERMANIUM","ARSENIC","SELENIUM","BROMINE","KRYPTON","RUBIDIUM","STRONTIUM","YTTRIUM","ZIRCONIUM",
+"NIOBIUM","MOLYBDENUM","TECHNETIUM","RUTHENIUM","RHODIUM","PALLADIUM","SILVER","CADMIUM","INDIUM","TIN",
+"ANTIMONY","TELLURIUM","IODINE","XENON","CESIUM","BARIUM","LANTHANUM","CERIUM","PRASEODYMIUM","NEODYMIUM",
+"PROMETHIUM","SAMARIUM","EUROPIUM","GADOLINIUM","TERBIUM","DYSPROSIUM","HOLMIUM","ERBIUM","THULIUM","YTTERBIUM",
+"LUTETIUM","HAFNIUM","TANTALUM","TUNGSTEN","RHENIUM","OSMIUM","IRIDIUM","PLATINUM","GOLD","MERCURY",
+"THALLIUM","LEAD","BISMUTH","POLONIUM","ASTATINE","RADON","FRANCIUM","RADIUM","ACTINIUM","THORIUM",
+"PROTACTINIUM","URANIUM","NEPTUNIUM","PLUTONIUM","AMERICIUM","CURIUM","BERKELIUM","CALIFORNIUM","EINSTEINIUM","FERMIUM",
+"MENDELEVIUM","NOBELIUM","LAWRENCIUM","RUTHERFORDIUM","DUBNIUM","SEABORGIUM","BOHRIUM","HASSIUM","MEITNERIUM","DARMSTADTIUM",
+"ROENTGENIUM","COPERNICIUM","NIHONIUM","FLEROVIUM","MOSCOVIUM","LIVERMORIUM","TENNESSINE","OGANESSON"
+];
+
+const symbols = [
+"H","He","Li","Be","B","C","N","O","F","Ne",
+"Na","Mg","Al","Si","P","S","Cl","Ar","K","Ca",
+"Sc","Ti","V","Cr","Mn","Fe","Co","Ni","Cu","Zn",
+"Ga","Ge","As","Se","Br","Kr","Rb","Sr","Y","Zr",
+"Nb","Mo","Tc","Ru","Rh","Pd","Ag","Cd","In","Sn",
+"Sb","Te","I","Xe","Cs","Ba","La","Ce","Pr","Nd",
+"Pm","Sm","Eu","Gd","Tb","Dy","Ho","Er","Tm","Yb",
+"Lu","Hf","Ta","W","Re","Os","Ir","Pt","Au","Hg",
+"Tl","Pb","Bi","Po","At","Rn","Fr","Ra","Ac","Th",
+"Pa","U","Np","Pu","Am","Cm","Bk","Cf","Es","Fm",
+"Md","No","Lr","Rf","Db","Sg","Bh","Hs","Mt","Ds",
+"Rg","Cn","Nh","Fl","Mc","Lv","Ts","Og"
+];
+
+const elements = names.map((name,i)=>({
+  num:i+1,
+  name,
+  symbol:symbols[i]
+}));
+
+let deck=[],queue=[],missed=[],current;
+let mode,round=0,total=10,correct=0;
 
 function schedule(el,ok){
-  queue.push({element:el, due: round + (ok ? 3 : 1)});
+  queue.push({element:el, due: round + (ok?3:1)});
 }
 
 function pick(){
-  const idx = queue.findIndex(c => c.due <= round);
-  if(idx !== -1){
-    const [item] = queue.splice(idx,1);
+  const i = queue.findIndex(c => c.due <= round);
+  if(i !== -1){
+    const [item] = queue.splice(i,1);
     return item.element;
   }
   return deck[Math.floor(Math.random()*deck.length)];
 }
 
 function startGame(custom){
-  mode=document.getElementById('mode').value;
-  const min=+document.getElementById('minAtomic').value;
-  const max=+document.getElementById('maxAtomic').value;
+  try{
+    mode=document.getElementById('mode').value;
 
-  deck=(custom||elements).filter(e=>e.num>=min&&e.num<=max);
+    const min=+document.getElementById('minAtomic').value;
+    const max=+document.getElementById('maxAtomic').value;
 
-  queue=[]; missed=[]; round=0; correct=0;
-  total=+document.getElementById('rounds').value;
+    deck=(custom||elements).filter(e=>e.num>=min&&e.num<=max);
 
-  if(!deck.length) return alert("No elements in range");
+    if(!deck.length){
+      alert("No elements in range");
+      return;
+    }
 
-  document.getElementById('settings').style.display='none';
-  document.getElementById('game').style.display='block';
-  document.getElementById('replayBtn').classList.add('hidden');
+    queue=[]; missed=[]; round=0; correct=0;
+    total=+document.getElementById('rounds').value;
 
-  next();
+    document.getElementById('settings').style.display='none';
+    document.getElementById('game').style.display='block';
+    document.getElementById('replayBtn').style.display='none';
+
+    next();
+  }catch(err){
+    console.error(err);
+  }
 }
 
 function next(){
   if(round>=total){
     document.getElementById('question').textContent="Complete";
     document.getElementById('feedback').textContent=`Score ${correct}/${total}`;
-    if(missed.length) document.getElementById('replayBtn').classList.remove('hidden');
+    if(missed.length){
+      document.getElementById('replayBtn').style.display='block';
+    }
     return;
   }
 
   current=pick();
-  const ask=mode==='both'?Math.random()<0.5:mode==='nameToSymbol';
-  current.ask=ask;
+  const ask = mode==='both' ? Math.random()<0.5 : mode==='nameToSymbol';
+  current.ask = ask;
 
-  document.getElementById('question').textContent=
-    ask?`Symbol for ${current.name}?`:`Name for ${current.symbol}?`;
+  document.getElementById('question').textContent =
+    ask ? `Symbol for ${current.name}?` : `Name for ${current.symbol}?`;
 
   document.getElementById('answer').value='';
-  document.getElementById('answer').focus();
   document.getElementById('feedback').textContent='';
   update();
 }
 
 function submitAnswer(){
-  const v=document.getElementById('answer').value.trim().toLowerCase();
-  const a=current.ask?current.symbol.toLowerCase():current.name.toLowerCase();
+  try{
+    const v=document.getElementById('answer').value.trim().toLowerCase();
+    const a=current.ask ? current.symbol.toLowerCase() : current.name.toLowerCase();
 
-  const ok=v===a;
+    const ok=v===a;
 
-  if(ok) correct++;
-  else missed.push(current);
+    if(ok) correct++;
+    else missed.push(current);
 
-  document.getElementById('feedback').textContent = ok ? 'Correct' : 'Answer: '+a;
+    document.getElementById('feedback').textContent = ok ? "Correct" : "Answer: "+a;
 
-  schedule(current, ok);
-  round++;
+    schedule(current,ok);
+    round++;
 
-  update();
-  setTimeout(next, 600);
+    update();
+    setTimeout(next,500);
+  }catch(err){
+    console.error(err);
+  }
 }
 
 function replayMissed(){
@@ -91,4 +263,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Enter') submitAnswer();
 });
 </script>
+
+</body>
+</html>
 
